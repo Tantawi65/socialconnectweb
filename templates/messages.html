@@ -1,0 +1,200 @@
+{% load static %}
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Messages - Social Connect</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}?v=1" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/messages.css' %}?v=1" />
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <!-- Logo and Search -->
+            <div class="nav-left">
+                <div class="logo">
+                    <h1>Social Connect</h1>
+                </div>
+                <div class="search-container">
+                    <input type="search" class="search-input" placeholder="Search Social Connect..." />
+                    <button class="search-btn" type="button">
+                        <span class="search-icon">🔍</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Navigation Menu -->
+            <div class="nav-center">
+                <div class="nav-menu">
+                    <a href="{% url 'home' %}" class="nav-item">
+                        <span class="nav-icon">🏠</span>
+                        <span class="nav-text">Home</span>
+                    </a>
+                    <a href="{% url 'messages' %}" class="nav-item active">
+                        <span class="nav-icon">💬</span>
+                        <span class="nav-text">Messages</span>
+                    </a>
+                    <a href="{% url 'profile' %}" class="nav-item">
+                        <span class="nav-icon">👤</span>
+                        <span class="nav-text">Profile</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Mobile Menu Button -->
+            <button class="mobile-menu-btn" id="mobile-menu-btn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <!-- User Actions -->
+            <div class="nav-right">
+                <div class="user-menu" id="user-menu-container">
+                    <img src="{{ user.get_profile_photo_url }}" alt="User Avatar" class="user-avatar" id="user-avatar-btn" />
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- User Dropdown (outside navbar to avoid overflow issues) -->
+    <div class="dropdown-menu" id="user-dropdown">
+        <a href="{% url 'profile' %}" class="dropdown-item">My Profile</a>
+        <a href="{% url 'logout' %}" class="dropdown-item">Logout</a>
+    </div>
+
+    <!-- Messages Container -->
+    <main class="messages-container">
+        <!-- Conversations Sidebar -->
+        <aside class="conversations-sidebar">
+            <header class="sidebar-header">
+                <h2 class="sidebar-title">Messages</h2>
+            </header>
+            
+            <!-- Search Conversations -->
+            <div class="search-conversations">
+                <input type="search" class="conversation-search" id="conversation-search" placeholder="Search conversations..." />
+            </div>
+            
+            <!-- Conversations List -->
+            <div class="conversations-list" id="conversations-list">
+                {% for conversation in conversations %}
+                    {% for participant in conversation.participants.all %}
+                        {% if participant != user %}
+                            {% with other_user=participant last_msg=conversation.messages.last %}
+                            <div class="conversation-item {% if forloop.first %}active{% endif %}" 
+                                 data-conversation-id="{{ conversation.id }}"
+                                 data-user-name="{{ other_user.username }}"
+                                 data-user-avatar="{{ other_user.get_profile_photo_url }}"
+                                 data-user-id="{{ other_user.id }}">
+                                <div class="conversation-avatar">
+                                    <img src="{{ other_user.get_profile_photo_url }}" alt="{{ other_user.username }}" class="avatar-img">
+                                </div>
+                                <div class="conversation-content">
+                                    <div class="conversation-header">
+                                        <h4 class="conversation-name">{{ other_user.username }}</h4>
+                                        {% if last_msg %}
+                                        <span class="conversation-time">{{ last_msg.created_at|timesince }} ago</span>
+                                        {% endif %}
+                                    </div>
+                                    <p class="last-message">
+                                        {% if last_msg %}
+                                            {% if last_msg.sender == user %}You: {% endif %}{{ last_msg.content|truncatewords:7 }}
+                                        {% else %}
+                                            Start a conversation
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            {% endwith %}
+                        {% endif %}
+                    {% endfor %}
+                {% empty %}
+                    <div class="no-conversations" style="padding: 20px; text-align: center; color: #65676b;">
+                        <p>No conversations yet</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </aside>
+
+        <!-- Chat Window -->
+        <section class="chat-window">
+            <!-- Active Chat -->
+            <div class="active-chat" id="active-chat" style="display: none; flex-direction: column;">
+                <!-- Chat Header -->
+                <header class="chat-header">
+                    <div class="chat-user-info">
+                        <img src="" alt="" class="chat-avatar" id="chat-avatar" />
+                        <div class="chat-user-details">
+                            <h3 class="chat-user-name" id="chat-user-name"></h3>
+                            <span class="chat-user-status" id="chat-user-status">Active now</span>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Messages Area -->
+                <div class="messages-area" id="messages-area">
+                    <div class="messages-list" id="messages-list">
+                        <!-- Messages will be loaded by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Message Input Area -->
+                <footer class="message-input-area">
+                    <form id="message-form" method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <input type="hidden" name="conversation_id" id="conversation-id" value="">
+                        <input type="file" id="file-input" name="attachment" accept="image/*,video/*,.pdf,.doc,.docx" style="display: none;">
+                        <div class="input-container">
+                            <button class="input-action-btn" id="photo-button" type="button" title="Add photo or file">
+                                <span class="action-icon">📎</span>
+                            </button>
+                            
+                            <div class="message-input-wrapper">
+                                <textarea 
+                                    class="message-input" 
+                                    name="content"
+                                    placeholder="Type a message..." 
+                                    rows="1"
+                                    id="message-input"
+                                ></textarea>
+                            </div>
+                            
+                            <button class="send-btn" type="submit" id="send-btn" disabled>
+                                <span class="send-icon">➤</span>
+                            </button>
+                        </div>
+                        
+                        <!-- File Preview -->
+                        <div class="file-preview hidden" id="file-preview">
+                            <div class="preview-content">
+                                <img class="preview-image hidden" id="preview-image" alt="File preview" />
+                                <div class="preview-file-info" id="preview-file-info">
+                                    <span class="file-name" id="file-name"></span>
+                                    <span class="file-size" id="file-size"></span>
+                                </div>
+                            </div>
+                            <button class="remove-file-btn" type="button" id="remove-file-btn">&times;</button>
+                        </div>
+                    </form>
+                </footer>
+            </div>
+        </section>
+    </main>
+
+    <!-- JavaScript Files -->
+    <script>
+        const currentUserData = {
+            username: '{{ user.username }}',
+            avatar: '{{ user.get_profile_photo_url }}'
+        };
+    </script>
+    <script type="text/javascript" src="{% static 'js/main.js' %}?v=10"></script>
+    <script type="text/javascript" src="{% static 'js/messages.js' %}?v=9"></script>
+</body>
+</body>
+<!-- jQuery CDN for global use -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-3gJwYp4gk6kKnto2h8u1zvQK6Q9r6M1y5+Zj3t6YEdw=" crossorigin="anonymous"></script>
+</html>

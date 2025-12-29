@@ -1,0 +1,326 @@
+{% load static %}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Social Connect - Home</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/home.css' %}" />
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <!-- Logo and Search -->
+            <div class="nav-left">
+                <div class="logo">
+                    <h1>Social Connect</h1>
+                </div>
+                <div class="search-container">
+                    <input type="search" class="search-input" placeholder="Search Social Connect..." />
+                    <button class="search-btn" type="button">
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Navigation Menu -->
+            <div class="nav-center">
+                <div class="nav-menu">
+                    <a href="{% url 'home' %}" class="nav-item active">
+                        <span class="nav-icon">🏠</span>
+                        <span class="nav-text">Home</span>
+                    </a>
+                    <a href="{% url 'messages' %}" class="nav-item">
+                        <span class="nav-icon">💬</span>
+                        <span class="nav-text">Messages</span>
+                    </a>
+                    <a href="{% url 'profile' %}" class="nav-item">
+                        <span class="nav-icon">👤</span>
+                        <span class="nav-text">Profile</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Mobile Menu Button -->
+            <button class="mobile-menu-btn" id="mobile-menu-btn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <!-- User Actions -->
+            <div class="nav-right">
+                <div class="user-menu" id="user-menu-container">
+                    <img src="{{ user.get_profile_photo_url }}" alt="User Avatar" class="user-avatar" id="user-avatar-btn" />
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- User Dropdown (outside navbar to avoid overflow issues) -->
+    <div class="dropdown-menu" id="user-dropdown">
+        <a href="{% url 'profile' %}" class="dropdown-item">My Profile</a>
+        <a href="{% url 'logout' %}" class="dropdown-item">Logout</a>
+    </div>
+
+    <!-- Main Content Container -->
+    <main class="main-container">
+        <!-- Left Sidebar -->
+        <aside class="left-sidebar">
+            <div class="sidebar-section">
+                <div class="user-card" id="profile-link">
+                    <img src="{{ user.get_profile_photo_url }}" alt="Your Profile" class="profile-img" />
+                    <div class="user-info">
+                        <h3>{{ user.username }}</h3>
+                        <p>See your profile</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Center Feed -->
+        <section class="center-feed">
+            <!-- Post Creation Box -->
+            <div class="post-creator">
+                <div class="creator-header">
+                    <img src="{{ user.get_profile_photo_url }}" alt="Your Avatar" class="creator-avatar" />
+                    <button class="create-post-btn" type="button" id="open-post-modal">What's on your mind, {{ user.username }}?</button>
+                </div>
+                <div class="creator-actions">
+                    <button class="action-btn" type="button" id="photo-video-btn">
+                        <span class="action-icon">📷</span>
+                        <span class="action-text">Photo/Video</span>
+                    </button>
+                    <button class="action-btn" type="button" id="feeling-activity-btn">
+                        <span class="action-icon">😊</span>
+                        <span class="action-text">Feeling/Activity</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Posts Feed -->
+            <div class="posts-container">
+                {% for post in posts %}
+                <article class="post-card" data-post-id="{{ post.id }}">
+                    <header class="post-header">
+                        <img src="{{ post.user.get_profile_photo_url }}" alt="User Avatar" class="post-avatar" />
+                        <div class="post-info">
+                            <h4 class="post-author">{{ post.user.username }}</h4>
+                            <time class="post-time">{{ post.created_at|timesince }} ago</time>
+                            {% if post.shared_from %}
+                                <div class="shared-info" style="font-size: 13px; color: #888;">
+                                    Shared from <a href="{% url 'profile' post.shared_from.user.username %}">{{ post.shared_from.user.username }}</a>'s post
+                                </div>
+                            {% endif %}
+                        </div>
+                    </header>
+                    <div class="post-content">
+                        <p>{{ post.content }}</p>
+                    </div>
+                    
+                    {% if post.image %}
+                    <div class="post-media">
+                        <img src="{{ post.image.url }}" alt="Post image" class="post-image" />
+                    </div>
+                    {% endif %}
+                    
+                    <footer class="post-footer">
+                        <div class="post-actions">
+                            <button class="action-btn like-btn" type="button" data-action="like">
+                                <span class="action-icon">👍</span>
+                                <span class="action-text">Like</span>
+                                <span class="action-count">{{ post.likes.count }}</span>
+                            </button>
+                            <button class="action-btn comment-btn" type="button" data-action="comment">
+                                <span class="action-icon">💬</span>
+                                <span class="action-text">Comment</span>
+                                <span class="action-count">{{ post.comments.count }}</span>
+                            </button>
+                            <button class="action-btn share-btn" type="button" data-action="share">
+                                <span class="action-icon">📤</span>
+                                <span class="action-text">Share</span>
+                                <span class="action-count"></span>
+                            </button>
+                        </div>
+                    </footer>
+                    
+                    <div class="post-comments" style="display: none; padding: 15px; background: #f8f9fa; border-top: 1px solid #e4e6ea; margin-top: 10px;">
+                        <div class="comments-container" style="margin-bottom: 15px;">
+                            {% for comment in post.comments.all %}
+                            <div class="comment-item" style="display: flex; align-items: flex-start; margin-bottom: 12px;">
+                                <img src="{{ comment.user.get_profile_photo_url }}" class="comment-avatar" 
+                                     style="width: 32px; height: 32px; border-radius: 50%; margin-right: 10px; flex-shrink: 0;">
+                                <div class="comment-content" style="flex: 1;">
+                                    <div class="comment-bubble" style="background: #ffffff; border-radius: 16px; padding: 8px 12px; display: inline-block; border: 1px solid #e4e6ea; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                                        <div class="comment-author" style="font-weight: 600; font-size: 13px; color: #050505; margin-bottom: 2px;">{{ comment.user.username }}</div>
+                                        <div class="comment-text" style="font-size: 14px; color: #050505; line-height: 1.3;">{{ comment.content }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="comment-form" style="
+                            display: flex; 
+                            align-items: center; 
+                            background: #ffffff;
+                            border-radius: 20px;
+                            padding: 8px;
+                            border: 1px solid #e4e6ea;
+                        ">
+                            <img src="{{ user.get_profile_photo_url }}" class="comment-avatar" 
+                                 style="width: 32px; height: 32px; border-radius: 50%; margin-right: 10px; flex-shrink: 0;">
+                            <div class="comment-input-container" style="flex: 1;">
+                                <input type="text" class="comment-input" placeholder="Write a comment..." 
+                                       style="width: 100%; border: none; outline: none; background: transparent; font-size: 14px; padding: 6px 0; color: #050505;">
+                            </div>
+                            <button class="comment-publish-btn" type="button" style="
+                                background: #1877f2; color: white; border: none; border-radius: 16px; 
+                                padding: 6px 12px; font-size: 14px; font-weight: 600; cursor: pointer; margin-left: 8px;">Post</button>
+                        </div>
+                    </div>
+                </article>
+                {% empty %}
+                <div class="no-posts">
+                    <p>No posts yet. Start sharing to see content from your friends!</p>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Right Sidebar -->
+        <aside class="right-sidebar">
+            <div class="sidebar-section">
+                <h3 class="section-title">Friend Requests</h3>
+                <div class="friend-requests">
+                    {% for request in user.received_requests.all %}
+                    <div class="friend-request">
+                        <img src="{{ request.from_user.get_profile_photo_url }}" alt="Friend Request" class="friend-avatar" />
+                        <div class="friend-info">
+                            <h4>
+                                <a href="{% url 'profile' request.from_user.username %}" style="color: #050505; text-decoration: none;">
+                                    {{ request.from_user.username }}
+                                </a>
+                            </h4>
+                            <p>Wants to be friends</p>
+                            <div class="friend-actions">
+                                <form method="post" action="{% url 'accept_friend_request' request.id %}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button class="btn btn-confirm" type="submit">Confirm</button>
+                                </form>
+                                <button class="btn btn-delete" type="button">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p style="color: #65676b; font-size: 14px;">No friend requests</p>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3 class="section-title">People You May Know</h3>
+                <div class="suggestions">
+                    {% for item in suggested_users|slice:":3" %}
+                    <div class="suggestion" style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e4e6eb;">
+                        <img src="{{ item.user.get_profile_photo_url }}" alt="Suggestion" class="suggestion-avatar" style="width: 60px; height: 60px; border-radius: 50%; margin-right: 12px; object-fit: cover;" />
+                        <div class="suggestion-info" style="flex: 1;">
+                            <h4 style="margin: 0; font-size: 15px; font-weight: 600;">
+                                <a href="{% url 'profile' item.user.username %}" style="color: #050505; text-decoration: none;">{{ item.user.username }}</a>
+                            </h4>
+                            <p style="margin: 4px 0 8px 0; color: #65676b; font-size: 13px;">Suggested for you</p>
+                            {% if item.has_pending_request %}
+                            <form method="post" action="{% url 'cancel_friend_request' item.user.username %}" style="margin: 0;">
+                                {% csrf_token %}
+                                <button type="submit" style="background: #e4e6eb; border: none; padding: 6px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; color: #050505;">
+                                    Cancel Request
+                                </button>
+                            </form>
+                            {% else %}
+                            <form method="post" action="{% url 'send_friend_request' item.user.username %}" style="margin: 0;">
+                                {% csrf_token %}
+                                <button type="submit" style="background: #e4e6eb; border: none; padding: 6px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; color: #050505;">
+                                    Add Friend
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p style="color: #65676b; font-size: 14px;">No suggestions</p>
+                    {% endfor %}
+                </div>
+                <a href="{% url 'find_friends' %}" style="display: block; text-align: center; color: #1877f2; text-decoration: none; font-size: 14px; font-weight: 600; padding: 12px 0; margin-top: 8px; background: #f0f2f5; border-radius: 6px;">
+                    See All People
+                </a>
+            </div>
+        </aside>
+    </main>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay hidden">
+        <div class="loading-spinner"></div>
+    </div>
+    
+    <!-- Post Creation Modal -->
+    <div class="modal" id="post-modal" style="display: none;">
+        <div class="modal-content post-modal-content">
+            <div class="modal-header">
+                <h3>Create Post</h3>
+                <button class="modal-close" id="close-post-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form method="post" enctype="multipart/form-data" id="post-form">
+                    {% csrf_token %}
+                    <div class="post-user-info">
+                        <img src="{{ user.get_profile_photo_url }}" alt="Your Avatar" class="modal-avatar" />
+                        <div class="user-details">
+                            <h4>{{ user.username }}</h4>
+                            <select class="privacy-select" name="privacy">
+                                <option value="public">🌍 Public</option>
+                                <option value="friends">👥 Friends</option>
+                                <option value="private">🔒 Only me</option>
+                            </select>
+                        </div>
+                    </div>
+                    <textarea class="modal-post-textarea" name="content" placeholder="What's on your mind, {{ user.username }}?" id="modal-post-content"></textarea>
+                    <div class="post-options">
+                        <div class="media-preview" id="media-preview" style="display: none;"></div>
+                        <div class="post-actions-bar">
+                            <span class="add-to-post">Add to your post:</span>
+                            <button class="post-option-btn" type="button" id="add-photo-btn" title="Photo/Video">
+                                <span class="option-icon">📷</span>
+                            </button>
+                            <button class="post-option-btn" type="button" id="add-feeling-btn" title="Feeling/Activity">
+                                <span class="option-icon">😊</span>
+                            </button>
+                            <button class="post-option-btn" type="button" id="add-location-btn" title="Check in">
+                                <span class="option-icon">📍</span>
+                            </button>
+                        </div>
+                    </div>
+                    <input type="file" name="image" id="file-input" accept="image/*,video/*" style="display: none;" />
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="post-submit-btn" id="submit-post" disabled>Post</button>
+            </div>
+        </div>
+        <div class="modal-backdrop"></div>
+    </div>
+
+    <!-- JavaScript Files -->
+    <script type="text/javascript">
+        // Pass Django user data to JavaScript
+        window.currentUserData = {
+            name: "{{ user.username }}",
+            avatar: "{{ user.get_profile_photo_url }}"
+        };
+    </script>
+    <script type="text/javascript" src="{% static 'js/main.js' %}?v=9"></script>
+    <script type="text/javascript" src="{% static 'js/dynamic-home.js' %}"></script>
+</body>
+</body>
+<!-- jQuery CDN for global use -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-3gJwYp4gk6kKnto2h8u1zvQK6Q9r6M1y5+Zj3t6YEdw=" crossorigin="anonymous"></script>
+</html>

@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.pdb
+*.egg-info/
+
+# Django
+*.log
+db.sqlite3
+media/
+venv/
+.env
+*.pot
+*.pyc
+
+# VSCode
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+
+# Test/coverage
+htmlcov/
+.coverage
+.tox/
+
+# Misc
+*.bak
+*.swp
+*.swo
+*.tmp
+
+# QR code image (keep if needed for docs)
+!qrcodesocialconnect.png

@@ -1,0 +1,214 @@
+{% load static %}
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ other_user.username }} - Social Connect</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}?v=1" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/messages.css' %}?v=1" />
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <!-- Logo and Search -->
+            <div class="nav-left">
+                <div class="logo">
+                    <h1>Social Connect</h1>
+                </div>
+                <div class="search-container">
+                    <input type="search" class="search-input" placeholder="Search Social Connect..." />
+                    <button class="search-btn" type="button">
+                        <span class="search-icon">🔍</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Navigation Menu -->
+            <div class="nav-center">
+                <div class="nav-menu">
+                    <a href="{% url 'home' %}" class="nav-item">
+                        <span class="nav-icon">🏠</span>
+                        <span class="nav-text">Home</span>
+                    </a>
+                    <a href="{% url 'messages' %}" class="nav-item active">
+                        <span class="nav-icon">💬</span>
+                        <span class="nav-text">Messages</span>
+                    </a>
+                    <a href="{% url 'profile' %}" class="nav-item">
+                        <span class="nav-icon">👤</span>
+                        <span class="nav-text">Profile</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Mobile Menu Button -->
+            <button class="mobile-menu-btn" id="mobile-menu-btn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <!-- User Actions -->
+            <div class="nav-right">
+                <div class="user-menu" id="user-menu-container">
+                    <img src="{{ user.get_profile_photo_url }}" alt="User Avatar" class="user-avatar" id="user-avatar-btn" />
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- User Dropdown -->
+    <div class="dropdown-menu" id="user-dropdown">
+        <a href="{% url 'profile' %}" class="dropdown-item">My Profile</a>
+        <a href="{% url 'logout' %}" class="dropdown-item">Logout</a>
+    </div>
+
+    <!-- Messages Container -->
+    <main class="messages-container">
+        <!-- Conversations Sidebar -->
+        <aside class="conversations-sidebar">
+            <header class="sidebar-header">
+                <h2 class="sidebar-title">Messages</h2>
+            </header>
+            
+            <div class="conversations-list">
+                <a href="{% url 'messages' %}" style="display: block; padding: 12px 16px; color: #1877f2; text-decoration: none; border-bottom: 1px solid #e4e6ea;">
+                    ← Back to all conversations
+                </a>
+            </div>
+        </aside>
+
+        <!-- Chat Window -->
+        <section class="chat-window">
+            <!-- Active Chat -->
+            <div class="active-chat" id="active-chat" style="display: flex; flex-direction: column;">
+                <!-- Chat Header -->
+                <header class="chat-header">
+                    <div class="chat-user-info">
+                        <img src="{{ other_user.get_profile_photo_url }}" alt="{{ other_user.username }}" class="chat-avatar" id="chat-avatar" />
+                        <div class="chat-user-details">
+                            <h3 class="chat-user-name" id="chat-user-name">{{ other_user.username }}</h3>
+                            <span class="chat-user-status" id="chat-user-status">Active now</span>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Messages Area -->
+                <div class="messages-area" id="messages-area">
+                    <div class="messages-list" id="messages-list">
+                        {% for message in messages %}
+                            {% if message.sender == user %}
+                            <div class="message sent" data-message-id="{{ message.id }}">
+                                <div class="message-content">
+                                    <div class="message-bubble">
+                                        {% if message.attachment %}
+                                            {% if message.is_image %}
+                                                <img src="{{ message.attachment.url }}" alt="Attachment" class="message-image" />
+                                            {% else %}
+                                                <a href="{{ message.attachment.url }}" class="message-file" target="_blank" download>
+                                                    <span class="file-icon">📎</span>
+                                                    <span class="file-name">{{ message.attachment.name|slice:"10:" }}</span>
+                                                </a>
+                                            {% endif %}
+                                        {% endif %}
+                                        {% if message.content %}
+                                            <p>{{ message.content }}</p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="message-actions">
+                                        <time class="message-time">{{ message.created_at|timesince }} ago</time>
+                                        <button class="message-menu-btn" data-message-id="{{ message.id }}" type="button">⋯</button>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="message received">
+                                <img src="{{ message.sender.get_profile_photo_url }}" alt="{{ message.sender.username }}" class="message-avatar" />
+                                <div class="message-content">
+                                    <div class="message-bubble">
+                                        {% if message.attachment %}
+                                            {% if message.is_image %}
+                                                <img src="{{ message.attachment.url }}" alt="Attachment" class="message-image" />
+                                            {% else %}
+                                                <a href="{{ message.attachment.url }}" class="message-file" target="_blank" download>
+                                                    <span class="file-icon">📎</span>
+                                                    <span class="file-name">{{ message.attachment.name|slice:"10:" }}</span>
+                                                </a>
+                                            {% endif %}
+                                        {% endif %}
+                                        {% if message.content %}
+                                            <p>{{ message.content }}</p>
+                                        {% endif %}
+                                    </div>
+                                    <time class="message-time">{{ message.created_at|timesince }} ago</time>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% empty %}
+                            <div class="no-messages" style="text-align: center; color: #65676b; padding: 40px;">
+                                <p>No messages yet. Start the conversation!</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Message Input Area -->
+                <footer class="message-input-area">
+                    <form id="message-form" method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <input type="file" id="file-input" name="attachment" accept="image/*,video/*,.pdf,.doc,.docx" style="display: none;">
+                        <div class="input-container">
+                            <button class="input-action-btn" id="photo-button" type="button" title="Add photo or file">
+                                <span class="action-icon">📎</span>
+                            </button>
+                            
+                            <div class="message-input-wrapper">
+                                <textarea 
+                                    class="message-input" 
+                                    name="content"
+                                    placeholder="Type a message..." 
+                                    rows="1"
+                                    id="message-input"
+                                ></textarea>
+                            </div>
+                            
+                            <button class="send-btn" type="submit" id="send-btn">
+                                <span class="send-icon">➤</span>
+                            </button>
+                        </div>
+                        
+                        <!-- File Preview -->
+                        <div class="file-preview hidden" id="file-preview">
+                            <div class="preview-content">
+                                <img class="preview-image hidden" id="preview-image" alt="File preview" />
+                                <div class="preview-file-info" id="preview-file-info">
+                                    <span class="file-name" id="file-name"></span>
+                                    <span class="file-size" id="file-size"></span>
+                                </div>
+                            </div>
+                            <button class="remove-file-btn" type="button" id="remove-file-btn">&times;</button>
+                        </div>
+                    </form>
+                </footer>
+            </div>
+        </section>
+    </main>
+
+    <!-- JavaScript Files -->
+    <script>
+        const currentUserData = {
+            username: '{{ user.username }}',
+            avatar: '{{ user.get_profile_photo_url }}'
+        };
+        const conversationId = {{ conversation.id }};
+        const otherUserId = {{ other_user.id }};
+    </script>
+    <script type="text/javascript" src="{% static 'js/main.js' %}?v=10"></script>
+    <script type="text/javascript" src="{% static 'js/conversation.js' %}?v=1"></script>
+</body>
+</body>
+<!-- jQuery CDN for global use -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-3gJwYp4gk6kKnto2h8u1zvQK6Q9r6M1y5+Zj3t6YEdw=" crossorigin="anonymous"></script>
+</html>

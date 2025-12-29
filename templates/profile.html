@@ -1,0 +1,393 @@
+{% load static %}
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ profile_user.username }} - Social Connect</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/profile.css' %}" />
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <!-- Logo and Search -->
+            <div class="nav-left">
+                <div class="logo">
+                    <h1>Social Connect</h1>
+                </div>
+                <div class="search-container">
+                    <input type="search" class="search-input" placeholder="Search Social Connect..." />
+                    <button class="search-btn" type="button">
+                        <span class="search-icon">🔍</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Navigation Menu -->
+            <div class="nav-center">
+                <div class="nav-menu">
+                    <a href="{% url 'home' %}" class="nav-item">
+                        <span class="nav-icon">🏠</span>
+                        <span class="nav-text">Home</span>
+                    </a>
+                    <a href="{% url 'messages' %}" class="nav-item">
+                        <span class="nav-icon">💬</span>
+                        <span class="nav-text">Messages</span>
+                    </a>
+                    <a href="{% url 'profile' %}" class="nav-item active">
+                        <span class="nav-icon">👤</span>
+                        <span class="nav-text">Profile</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Mobile Menu Button -->
+            <button class="mobile-menu-btn" id="mobile-menu-btn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <!-- User Actions -->
+            <div class="nav-right">
+                <div class="user-menu" id="user-menu-container">
+                    <img src="{{ user.get_profile_photo_url }}" alt="User Avatar" class="user-avatar" id="user-avatar-btn" />
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- User Dropdown -->
+    <div class="dropdown-menu" id="user-dropdown">
+        <a href="{% url 'profile' %}" class="dropdown-item">My Profile</a>
+        <a href="{% url 'logout' %}" class="dropdown-item">Logout</a>
+    </div>
+
+    <!-- Profile Content -->
+    <main class="profile-container">
+        <!-- Profile Header -->
+        <section class="profile-header">
+            <!-- Cover Photo -->
+            <div class="cover-photo-container">
+                <img src="{{ profile_user.get_cover_photo_url }}" alt="Cover Photo" class="cover-photo" id="cover-photo" />
+                {% if is_own_profile %}
+                <button class="edit-cover-btn" id="edit-cover-btn" type="button">
+                    <span class="btn-icon">📷</span>
+                    <span class="btn-text">Edit Cover Photo</span>
+                </button>
+                {% endif %}
+            </div>
+            
+            <!-- Profile Info -->
+            <div class="profile-info-section">
+                <div class="profile-picture-container">
+                    <img src="{{ profile_user.get_profile_photo_url }}" alt="Profile Picture" class="profile-picture" id="profile-picture" />
+                    {% if is_own_profile %}
+                    <button class="edit-picture-btn" id="edit-picture-btn" type="button">
+                        <span class="edit-icon">📷</span>
+                    </button>
+                    {% endif %}
+                </div>
+                
+                <div class="profile-details">
+                    <h1 class="profile-name">{{ profile_user.username }}</h1>
+                    {% if profile_user.bio %}
+                    <p class="profile-bio">{{ profile_user.bio }}</p>
+                    {% endif %}
+                    <div class="profile-stats">
+                        <span class="stat-item">
+                            <strong>{{ friends_count }}</strong> Friends
+                        </span>
+                        <span class="stat-item">
+                            <strong>{{ posts.count }}</strong> Posts
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="profile-actions">
+                    {% if is_own_profile %}
+                        <button class="btn btn-primary edit-profile-btn" type="button">
+                            <span class="btn-icon">✏️</span>
+                            <span class="btn-text">Edit Profile</span>
+                        </button>
+                    {% else %}
+                        {% if is_friend %}
+                            <a href="{% url 'start_conversation' profile_user.username %}" class="btn btn-primary">
+                                <span class="btn-icon">💬</span>
+                                <span class="btn-text">Message</span>
+                            </a>
+                            <form method="post" action="{% url 'unfriend' profile_user.username %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button class="btn btn-secondary" type="submit">
+                                    <span class="btn-text">Unfriend</span>
+                                </button>
+                            </form>
+                        {% elif has_sent_request %}
+                            <form method="post" action="{% url 'cancel_friend_request' profile_user.username %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button class="btn btn-secondary" type="submit">
+                                    <span class="btn-text">Cancel Request</span>
+                                </button>
+                            </form>
+                        {% elif has_received_request %}
+                            <form method="post" action="{% url 'accept_friend_request' friend_request_id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button class="btn btn-primary" type="submit">
+                                    <span class="btn-text">Accept Friend Request</span>
+                                </button>
+                            </form>
+                        {% else %}
+                            <form method="post" action="{% url 'send_friend_request' profile_user.username %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button class="btn btn-primary" type="submit">
+                                    <span class="btn-icon">➕</span>
+                                    <span class="btn-text">Add Friend</span>
+                                </button>
+                            </form>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+
+        <!-- Profile Content Area -->
+        <div class="profile-content">
+            <!-- Left Column -->
+            <aside class="profile-sidebar">
+                <!-- About Section -->
+                <div class="about-section">
+                    <h3 class="section-title">About</h3>
+                    <div class="about-content">
+                        {% if profile_user.gender %}
+                        <div class="about-item">
+                            <span class="about-icon">👤</span>
+                            <div class="about-text">
+                                <p><strong>Gender</strong></p>
+                                <p>{{ profile_user.get_gender_display }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if profile_user.relationship_status %}
+                        <div class="about-item">
+                            <span class="about-icon">💑</span>
+                            <div class="about-text">
+                                <p><strong>Relationship Status</strong></p>
+                                <p>{{ profile_user.get_relationship_status_display }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if profile_user.location %}
+                        <div class="about-item">
+                            <span class="about-icon">🏠</span>
+                            <div class="about-text">
+                                <p><strong>Lives in</strong></p>
+                                <p>{{ profile_user.location }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if profile_user.website %}
+                        <div class="about-item">
+                            <span class="about-icon">🔗</span>
+                            <div class="about-text">
+                                <p><strong>Website</strong></p>
+                                <p><a href="{{ profile_user.website }}" target="_blank">{{ profile_user.website }}</a></p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="about-item">
+                            <span class="about-icon">📅</span>
+                            <div class="about-text">
+                                <p><strong>Joined</strong></p>
+                                <p>{{ profile_user.date_joined|date:"F Y" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if is_own_profile %}
+                    <button class="btn btn-link edit-details-btn" type="button">
+                        Edit Details
+                    </button>
+                    {% endif %}
+                </div>
+                
+                <!-- Friends Section -->
+                <div class="friends-section">
+                    <div class="section-header">
+                        <h3 class="section-title">Friends</h3>
+                        <a href="{% url 'all_friends' profile_user.username %}" class="see-all-link">See All Friends</a>
+                    </div>
+                    
+                    <div class="friends-grid">
+                        {% for friend in friends %}
+                        <div class="friend-item">
+                            <a href="{% url 'profile' friend.username %}">
+                                <img src="{{ friend.get_profile_photo_url }}" alt="{{ friend.username }}" class="friend-avatar" />
+                                <p class="friend-name">{{ friend.username }}</p>
+                            </a>
+                        </div>
+                        {% empty %}
+                        <p style="color: #65676b; padding: 12px;">No friends yet</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <section class="profile-main">
+                <!-- Posts Container -->
+                <div class="profile-posts" id="posts-content">
+                    {% for post in posts %}
+                    <article class="post-card" data-post-id="{{ post.id }}">
+                        <header class="post-header">
+                            <img src="{{ post.user.get_profile_photo_url }}" alt="{{ post.user.username }}" class="post-avatar" />
+                            <div class="post-info">
+                                <h4 class="post-author">{{ post.user.username }}</h4>
+                                <time class="post-time">{{ post.created_at|timesince }} ago</time>
+                                {% if post.shared_from %}
+                                    <div class="shared-info" style="font-size: 13px; color: #888;">
+                                        Shared from <a href="{% url 'profile' post.shared_from.user.username %}">{{ post.shared_from.user.username }}</a>'s post
+                                    </div>
+                                {% endif %}
+                            </div>
+                            {% if post.user == user %}
+                            <button class="post-menu-btn" data-post-id="{{ post.id }}" type="button">⋯</button>
+                            {% endif %}
+                        </header>
+                        <div class="post-content">
+                            <p>{{ post.content }}</p>
+                        </div>
+                        
+                        {% if post.image %}
+                        <div class="post-media">
+                            <img src="{{ post.image.url }}" alt="Post Image" class="post-image" />
+                        </div>
+                        {% endif %}
+                        
+                        <footer class="post-footer">
+                            <div class="post-stats">
+                                <span class="likes-count">{{ post.likes.count }} like{{ post.likes.count|pluralize }}</span>
+                                <span class="comments-count">{{ post.comments.count }} comment{{ post.comments.count|pluralize }}</span>
+                            </div>
+                            
+                            <div class="post-actions">
+                                <button class="action-btn like-btn {% if user in post.likes.all %}liked{% endif %}" 
+                                        data-post-id="{{ post.id }}" type="button">
+                                    <span class="action-icon">{% if user in post.likes.all %}❤️{% else %}👍{% endif %}</span>
+                                    <span class="action-text">Like</span>
+                                </button>
+                                <button class="action-btn comment-btn" data-post-id="{{ post.id }}" type="button">
+                                    <span class="action-icon">💬</span>
+                                    <span class="action-text">Comment</span>
+                                </button>
+                                <button class="action-btn share-btn" type="button">
+                                    <span class="action-icon">📤</span>
+                                    <span class="action-text">Share</span>
+                                </button>
+                            </div>
+                        </footer>
+                    </article>
+                    {% empty %}
+                    <div class="no-posts" style="text-align: center; padding: 40px; color: #65676b;">
+                        <p>No posts yet</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Edit Profile Modal -->
+    <div class="modal hidden" id="edit-profile-modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2>Edit Profile</h2>
+                <button class="modal-close-btn" type="button">&times;</button>
+            </header>
+            
+            <div class="modal-body">
+                <form class="edit-profile-form" id="edit-profile-form" method="post" action="{% url 'profile' profile_user.username %}">
+                    {% csrf_token %}
+                    <div class="form-section">
+                        <h3>Basic Information</h3>
+                        
+                        <div class="input-group">
+                            <label class="input-label">Bio</label>
+                            <textarea class="form-textarea" name="bio" id="edit-bio" rows="3">{{ profile_user.bio }}</textarea>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label class="input-label">Gender</label>
+                            <select class="form-input" name="gender" id="edit-gender">
+                                <option value="">Select Gender</option>
+                                <option value="male" {% if profile_user.gender == 'male' %}selected{% endif %}>Male</option>
+                                <option value="female" {% if profile_user.gender == 'female' %}selected{% endif %}>Female</option>
+                            </select>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label class="input-label">Relationship Status</label>
+                            <select class="form-input" name="relationship_status" id="edit-relationship-status">
+                                <option value="">Select Status</option>
+                                <option value="single" {% if profile_user.relationship_status == 'single' %}selected{% endif %}>Single</option>
+                                <option value="married" {% if profile_user.relationship_status == 'married' %}selected{% endif %}>Married</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h3>Location</h3>
+                        
+                        <div class="input-group">
+                            <label class="input-label">Current City</label>
+                            <input type="text" class="form-input" name="location" id="edit-location" value="{{ profile_user.location }}" />
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h3>Contact</h3>
+                        
+                        <div class="input-group">
+                            <label class="input-label">Website</label>
+                            <input type="url" class="form-input" name="website" id="edit-website" value="{{ profile_user.website }}" />
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <footer class="modal-footer">
+                <button class="btn btn-cancel" type="button">Cancel</button>
+                <button class="btn btn-save" type="button">Save Changes</button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Hidden file inputs for photo uploads -->
+    <input type="file" id="cover-photo-input" accept="image/*" style="display: none;" />
+    <input type="file" id="profile-photo-input" accept="image/*" style="display: none;" />
+
+    <!-- JavaScript Files -->
+    <script>
+        const profileUserData = {
+            username: '{{ profile_user.username }}',
+            avatar: '{{ profile_user.get_profile_photo_url }}',
+            isOwnProfile: {{ is_own_profile|yesno:"true,false" }}
+        };
+        const currentUserData = {
+            username: '{{ user.username }}',
+            avatar: '{{ user.get_profile_photo_url }}'
+        };
+    </script>
+    <script type="text/javascript" src="{% static 'js/main.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/profile.js' %}"></script>
+</body>
+</body>
+<!-- jQuery CDN for global use -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-3gJwYp4gk6kKnto2h8u1zvQK6Q9r6M1y5+Zj3t6YEdw=" crossorigin="anonymous"></script>
+</html>

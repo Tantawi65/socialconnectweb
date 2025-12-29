@@ -1,0 +1,149 @@
+{% load static %}
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ profile_user.username }}'s Friends - Social Connect</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/home.css' %}" />
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <!-- Logo and Search -->
+            <div class="nav-left">
+                <div class="logo">
+                    <h1>Social Connect</h1>
+                </div>
+                <div class="search-container">
+                    <input type="search" class="search-input" placeholder="Search Social Connect..." />
+                    <button class="search-btn" type="button">
+                        <span class="search-icon">🔍</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Navigation Menu -->
+            <div class="nav-center">
+                <div class="nav-menu">
+                    <a href="{% url 'home' %}" class="nav-item">
+                        <span class="nav-icon">🏠</span>
+                        <span class="nav-text">Home</span>
+                    </a>
+                    <a href="{% url 'messages' %}" class="nav-item">
+                        <span class="nav-icon">💬</span>
+                        <span class="nav-text">Messages</span>
+                    </a>
+                    <a href="{% url 'profile' %}" class="nav-item">
+                        <span class="nav-icon">👤</span>
+                        <span class="nav-text">Profile</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Mobile Menu Button -->
+            <button class="mobile-menu-btn" id="mobile-menu-btn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <!-- User Actions -->
+            <div class="nav-right">
+                <div class="user-menu" id="user-menu-container">
+                    <img src="{{ user.get_profile_photo_url }}" alt="User Avatar" class="user-avatar" id="user-avatar-btn" />
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- User Dropdown -->
+    <div class="dropdown-menu" id="user-dropdown">
+        <a href="{% url 'profile' %}" class="dropdown-item">My Profile</a>
+        <a href="{% url 'logout' %}" class="dropdown-item">Logout</a>
+    </div>
+
+    <!-- Main Content Container -->
+    <main class="main-container">
+        <div class="center-content" style="max-width: 900px; margin: 80px auto; padding: 20px;">
+            <div style="margin-bottom: 20px;">
+                <a href="{% url 'profile' profile_user.username %}" style="color: #1877f2; text-decoration: none; font-size: 14px;">
+                    ← Back to Profile
+                </a>
+            </div>
+            
+            <h2 style="font-size: 24px; font-weight: 600; margin-bottom: 8px;">
+                {% if is_own_profile %}
+                    All Friends
+                {% else %}
+                    {{ profile_user.username }}'s Friends
+                {% endif %}
+            </h2>
+            <p style="font-size: 15px; color: #65676b; margin-bottom: 24px;">{{ friends.count }} friend{{ friends.count|pluralize }}</p>
+            
+            {% if friends %}
+            <div class="friends-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
+                {% for friend in friends %}
+                <div class="friend-card" style="background: white; border-radius: 8px; padding: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); transition: box-shadow 0.2s;">
+                    <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                        <img src="{{ friend.get_profile_photo_url }}" alt="{{ friend.username }}" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; margin-right: 12px;">
+                        <div style="flex: 1; min-width: 0;">
+                            <h3 style="font-size: 16px; font-weight: 600; margin: 0;">
+                                <a href="{% url 'profile' friend.username %}" style="color: #050505; text-decoration: none;">{{ friend.username }}</a>
+                            </h3>
+                            {% if friend.bio %}
+                            <p style="font-size: 13px; color: #65676b; margin: 4px 0 0 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ friend.bio|truncatewords:8 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 8px;">
+                        <a href="{% url 'profile' friend.username %}" style="flex: 1; padding: 8px 16px; background: #e4e6eb; color: #050505; border: none; border-radius: 6px; font-weight: 600; text-align: center; text-decoration: none; display: block;">
+                            View Profile
+                        </a>
+                        <a href="{% url 'start_conversation' friend.username %}" style="flex: 1; padding: 8px 16px; background: #1877f2; color: white; border: none; border-radius: 6px; font-weight: 600; text-align: center; text-decoration: none; display: block;">
+                            Message
+                        </a>
+                    </div>
+                    
+                    {% if is_own_profile %}
+                    <form method="post" action="{% url 'unfriend' friend.username %}" style="margin: 8px 0 0 0;">
+                        {% csrf_token %}
+                        <button type="submit" style="width: 100%; padding: 6px 16px; background: transparent; color: #65676b; border: 1px solid #ccd0d5; border-radius: 6px; font-weight: 500; cursor: pointer; font-size: 14px;" onclick="return confirm('Are you sure you want to unfriend {{ friend.username }}?')">
+                            Unfriend
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div style="background: white; border-radius: 8px; padding: 40px; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                <div style="font-size: 48px; margin-bottom: 16px;">👥</div>
+                <h3 style="font-size: 20px; font-weight: 600; margin: 0 0 8px 0; color: #050505;">No friends yet</h3>
+                <p style="color: #65676b; margin: 0 0 20px 0;">
+                    {% if is_own_profile %}
+                        Start connecting with people!
+                    {% else %}
+                        {{ profile_user.username }} hasn't added any friends yet.
+                    {% endif %}
+                </p>
+                {% if is_own_profile %}
+                <a href="{% url 'find_friends' %}" style="display: inline-block; padding: 10px 20px; background: #1877f2; color: white; border-radius: 6px; text-decoration: none; font-weight: 600;">
+                    Find Friends
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <!-- JavaScript -->
+    <script type="text/javascript" src="{% static 'js/main.js' %}"></script>
+</body>
+</body>
+<!-- jQuery CDN for global use -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-3gJwYp4gk6kKnto2h8u1zvQK6Q9r6M1y5+Zj3t6YEdw=" crossorigin="anonymous"></script>
+</html>

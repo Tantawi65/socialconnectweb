@@ -1,0 +1,73 @@
+{% load static %}
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Social Connect - Log In</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/auth.css' %}" />
+</head>
+<body class="auth-body">
+    <div class="auth-container">
+        <div class="brand-section">
+            <h1 class="brand-title">Social Connect</h1>
+            <p class="brand-subtitle">Connect with friends and the world around you on Social Connect.</p>
+        </div>
+        
+        <div class="form-section">
+            <div class="form-container">
+                <form class="auth-form" method="post">
+                    {% csrf_token %}
+                    <h2 class="form-title">Log In</h2>
+                    
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="form-error">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <div class="input-group">
+                        <input 
+                            type="text" 
+                            class="form-input" 
+                            name="username" 
+                            placeholder="Username" 
+                            required="required"
+                        />
+                    </div>
+                    
+                    <div class="input-group">
+                        <input 
+                            type="password" 
+                            class="form-input" 
+                            name="password" 
+                            placeholder="Password" 
+                            required="required"
+                        />
+                    </div>
+                    
+                    <button type="submit" class="submit-btn">
+                        <span class="btn-text">Log In</span>
+                    </button>
+                    
+                    <div class="divider">
+                        <span class="divider-text">or</span>
+                    </div>
+                    
+                    <div class="signup-section">
+                        <a href="{% url 'signup' %}" class="signup-btn">
+                            Create New Account
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</body>
+<!-- jQuery CDN for demonstration -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-3gJwYp4gk6kKnto2h8u1zvQK6Q9r6M1y5+Zj3t6YEdw=" crossorigin="anonymous"></script>
+</html>
+
+    <script src="{% static 'js/validation.js' %}"></script>

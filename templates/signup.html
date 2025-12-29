@@ -1,0 +1,104 @@
+{% load static %}
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Social Connect - Sign Up</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/auth.css' %}" />
+</head>
+<body class="auth-body">
+    <div class="auth-container">
+        <div class="brand-section">
+            <h1 class="brand-title">Social Connect</h1>
+            <p class="brand-subtitle">Create an account to connect with friends and share your moments.</p>
+        </div>
+        
+        <div class="form-section">
+            <div class="form-container">
+                <form class="auth-form" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <h2 class="form-title">Sign Up</h2>
+                    <p class="form-subtitle">It's quick and easy.</p>
+                    
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="form-error">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <div class="input-group">
+                        <input 
+                            type="text" 
+                            class="form-input" 
+                            name="username" 
+                            placeholder="Username" 
+                            required="required"
+                        />
+                    </div>
+                    
+                    <div class="input-group">
+                        <input 
+                            type="email" 
+                            class="form-input" 
+                            name="email" 
+                            placeholder="Email address" 
+                            required="required"
+                        />
+                    </div>
+                    
+                    <div class="input-group">
+                        <input 
+                            type="password" 
+                            class="form-input" 
+                            name="password" 
+                            placeholder="Password" 
+                            required="required"
+                        />
+                    </div>
+                    
+                    <div class="input-group">
+                        <input 
+                            type="password" 
+                            class="form-input" 
+                            name="password_confirm" 
+                            placeholder="Confirm Password" 
+                            required="required"
+                        />
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Profile Photo (optional)</label>
+                        <input 
+                            type="file" 
+                            class="form-input" 
+                            name="profile_photo" 
+                            accept="image/*"
+                        />
+                    </div>
+                    
+                    <button type="submit" class="submit-btn">
+                        <span class="btn-text">Sign Up</span>
+                    </button>
+                    
+                    <div class="divider">
+                        <span class="divider-text">or</span>
+                    </div>
+                    
+                    <div class="signup-section">
+                        <a href="{% url 'login' %}" class="signup-btn">
+                            Already have an account? Log In
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</body>
+<!-- jQuery CDN for demonstration -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-3gJwYp4gk6kKnto2h8u1zvQK6Q9r6M1y5+Zj3t6YEdw=" crossorigin="anonymous"></script>
+</html>
+
+    <script src="{% static 'js/validation.js' %}"></script>

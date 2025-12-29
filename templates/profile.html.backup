@@ -1,0 +1,281 @@
+{% load static %}
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ profile_user.username }} - Social Connect</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/profile.css' %}" />
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <!-- Logo and Search -->
+            <div class="nav-left">
+                <div class="logo">
+                    <h1>Social Connect</h1>
+                </div>
+                <div class="search-container">
+                    <input type="search" class="search-input" placeholder="Search Social Connect..." />
+                    <button class="search-btn" type="button">
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Navigation Menu -->
+            <div class="nav-center">
+                <div class="nav-menu">
+                    <a href="{% url 'home' %}" class="nav-item">
+                        <span class="nav-icon">🏠</span>
+                        <span class="nav-text">Home</span>
+                    </a>
+                    <a href="{% url 'messages' %}" class="nav-item">
+                        <span class="nav-icon">💬</span>
+                        <span class="nav-text">Messages</span>
+                    </a>
+                    <a href="{% url 'profile' %}" class="nav-item active">
+                        <span class="nav-icon">👤</span>
+                        <span class="nav-text">Profile</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Mobile Menu Button -->
+            <button class="mobile-menu-btn" id="mobile-menu-btn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <!-- User Actions -->
+            <div class="nav-right">
+                <div class="user-menu" id="user-menu-container">
+                    <img src="{% if request.user.profile_photo %}{{ request.user.profile_photo.url }}{% else %}/media/defaults/default-avatar.jpg{% endif %}" alt="User Avatar" class="user-avatar" id="user-avatar-btn" />
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- User Dropdown (outside navbar to avoid overflow issues) -->
+    <div class="dropdown-menu" id="user-dropdown">
+        <a href="{% url 'profile' %}" class="dropdown-item">My Profile</a>
+        <a href="{% url 'logout' %}" class="dropdown-item">Logout</a>
+    </div>
+
+    <main class="profile-container">
+        <section class="profile-header">
+            <div class="cover-photo-container">
+                <img src="{{ profile_user.get_cover_photo_url }}" alt="Cover Photo" class="cover-photo" />
+                {% if is_own_profile %}
+                <form method="post" enctype="multipart/form-data" style="display:inline;">
+                    {% csrf_token %}
+                    <label class="edit-cover-btn">
+                        <span class="btn-icon">📷</span>
+                        <span class="btn-text">Edit Cover Photo</span>
+                        <input type="file" name="cover_photo" accept="image/*" style="display:none;" onchange="this.form.submit()" />
+                    </label>
+                </form>
+                {% endif %}
+            </div>
+            
+            <div class="profile-info-section">
+                <div class="profile-picture-container">
+                    <img src="{{ profile_user.get_profile_photo_url }}" alt="Profile Picture" class="profile-picture" />
+                    {% if is_own_profile %}
+                    <form method="post" enctype="multipart/form-data" style="display:inline;">
+                        {% csrf_token %}
+                        <label class="edit-picture-btn">
+                            <span class="edit-icon">📷</span>
+                            <input type="file" name="profile_photo" accept="image/*" style="display:none;" onchange="this.form.submit()" />
+                        </label>
+                    </form>
+                    {% endif %}
+                </div>
+                
+                <div class="profile-details">
+                    <h1 class="profile-name">{{ profile_user.username }}</h1>
+                    {% if profile_user.bio %}
+                        <p class="profile-bio">{{ profile_user.bio }}</p>
+                    {% endif %}
+                    <div class="profile-stats">
+                        <span class="stat-item">
+                            <strong>{{ profile_user.friendships.count }}</strong> Friends
+                        </span>
+                        <span class="stat-item">
+                            <strong>{{ posts.count }}</strong> Posts
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="profile-actions">
+                    {% if is_own_profile %}
+                        <button class="btn btn-primary edit-profile-btn" type="button" onclick="document.getElementById('edit-form').style.display='block'">
+                            <span class="btn-icon">✏️</span>
+                            <span class="btn-text">Edit Profile</span>
+                        </button>
+                    {% else %}
+                        {% if is_friend %}
+                            <form method="post" action="{% url 'unfriend' profile_user.username %}" style="display: inline; margin: 0;">
+                                {% csrf_token %}
+                                <button class="btn btn-secondary" type="submit">
+                                    <span class="btn-icon">✓</span>
+                                    <span class="btn-text">Friends</span>
+                                </button>
+                            </form>
+                            <a href="{% url 'start_conversation' profile_user.username %}" class="btn btn-primary">
+                                <span class="btn-icon">💬</span>
+                                <span class="btn-text">Message</span>
+                            </a>
+                            <form method="post" action="{% url 'unfriend' profile_user.username %}" style="display: inline; margin: 0;">
+                                {% csrf_token %}
+                                <button class="btn btn-delete" type="submit" style="background: #dc3545; color: white;">
+                                    <span class="btn-text">Remove Friend</span>
+                                </button>
+                            </form>
+                        {% elif has_sent_request %}
+                            <form method="post" action="{% url 'cancel_friend_request' profile_user.username %}" style="display: inline; margin: 0;">
+                                {% csrf_token %}
+                                <button class="btn btn-secondary" type="submit">
+                                    <span class="btn-text">Cancel Request</span>
+                                </button>
+                            </form>
+                        {% elif has_received_request %}
+                            <form method="post" action="{% url 'accept_friend_request' friend_request_id %}" style="display: inline; margin: 0;">
+                                {% csrf_token %}
+                                <button class="btn btn-primary" type="submit">
+                                    <span class="btn-text">Accept Friend Request</span>
+                                </button>
+                            </form>
+                            <form method="post" action="{% url 'reject_friend_request' friend_request_id %}" style="display: inline; margin: 0;">
+                                {% csrf_token %}
+                                <button class="btn btn-secondary" type="submit" style="background: #e4e6eb; color: #050505;">
+                                    <span class="btn-text">Decline</span>
+                                </button>
+                            </form>
+                        {% else %}
+                            <a href="{% url 'send_friend_request' profile_user.username %}" class="btn btn-primary">
+                                <span class="btn-icon">➕</span>
+                                <span class="btn-text">Add Friend</span>
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+
+        {% if is_own_profile %}
+        <div id="edit-form" style="display:none; padding: 20px; background: white; margin: 20px; border-radius: 8px;">
+            <h3>Edit Profile</h3>
+            <form method="post">
+                {% csrf_token %}
+                <div style="margin: 10px 0;">
+                    <label>Bio:</label>
+                    <textarea name="bio" rows="3" style="width: 100%; padding: 8px;">{{ profile_user.bio }}</textarea>
+                </div>
+                <div style="margin: 10px 0;">
+                    <label>Location:</label>
+                    <input type="text" name="location" value="{{ profile_user.location }}" style="width: 100%; padding: 8px;" />
+                </div>
+                <div style="margin: 10px 0;">
+                    <label>Website:</label>
+                    <input type="url" name="website" value="{{ profile_user.website }}" style="width: 100%; padding: 8px;" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('edit-form').style.display='none'">Cancel</button>
+            </form>
+        </div>
+        {% endif %}
+
+        <div class="profile-content">
+            <aside class="profile-sidebar">
+                <div class="about-section">
+                    <h3 class="section-title">About</h3>
+                    <div class="about-content">
+                        {% if profile_user.location %}
+                        <div class="about-item">
+                            <span class="about-icon">📍</span>
+                            <div class="about-text">
+                                <p><strong>Lives in</strong></p>
+                                <p>{{ profile_user.location }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if profile_user.website %}
+                        <div class="about-item">
+                            <span class="about-icon">🌐</span>
+                            <div class="about-text">
+                                <p><strong>Website</strong></p>
+                                <p><a href="{{ profile_user.website }}" target="_blank">{{ profile_user.website }}</a></p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="about-item">
+                            <span class="about-icon">📅</span>
+                            <div class="about-text">
+                                <p><strong>Joined</strong></p>
+                                <p>{{ profile_user.date_joined|date:"F Y" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <section class="profile-posts">
+                <div class="posts-header">
+                    <h3>Posts</h3>
+                </div>
+                
+                <div class="posts-container">
+                    {% for post in posts %}
+                    <article class="post-card">
+                        <header class="post-header">
+                            <img src="{{ post.user.get_profile_photo_url }}" alt="User Avatar" class="post-avatar" />
+                            <div class="post-info">
+                                <h4 class="post-author">{{ post.user.username }}</h4>
+                                <time class="post-time">{{ post.created_at|timesince }} ago</time>
+                            </div>
+                        </header>
+                        
+                        <div class="post-content">
+                            <p>{{ post.content }}</p>
+                            {% if post.image %}
+                                <img src="{{ post.image.url }}" alt="Post image" class="post-image" />
+                            {% endif %}
+                        </div>
+                        
+                        <div class="post-stats">
+                            <span>{{ post.likes.count }} likes</span>
+                            <span>{{ post.comments.count }} comments</span>
+                        </div>
+                        
+                        <div class="post-actions">
+                            <form method="post" action="{% url 'like_post' post.id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button class="action-btn" type="submit">
+                                    <span class="action-icon">👍</span>
+                                    <span class="action-text">Like</span>
+                                </button>
+                            </form>
+                            <button class="action-btn" type="button">
+                                <span class="action-icon">💬</span>
+                                <span class="action-text">Comment</span>
+                            </button>
+                        </div>
+                    </article>
+                    {% empty %}
+                    <div class="no-posts">
+                        <p>No posts yet.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+        </div>
+    </main>
+    <script src="{% static 'js/main.js' %}?v=9"></script>
+    <script src="{% static 'js/profile-django.js' %}"></script>
+</body>
+</html>

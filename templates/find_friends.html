@@ -1,0 +1,121 @@
+{% load static %}
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Find Friends - Social Connect</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/home.css' %}" />
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <!-- Logo and Search -->
+            <div class="nav-left">
+                <div class="logo">
+                    <h1>Social Connect</h1>
+                </div>
+                <div class="search-container">
+                    <input type="search" class="search-input" placeholder="Search Social Connect..." />
+                    <button class="search-btn" type="button">
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Navigation Menu -->
+            <div class="nav-center">
+                <div class="nav-menu">
+                    <a href="{% url 'home' %}" class="nav-item">
+                        <span class="nav-icon">🏠</span>
+                        <span class="nav-text">Home</span>
+                    </a>
+                    <a href="{% url 'messages' %}" class="nav-item">
+                        <span class="nav-icon">💬</span>
+                        <span class="nav-text">Messages</span>
+                    </a>
+                    <a href="{% url 'profile' %}" class="nav-item">
+                        <span class="nav-icon">👤</span>
+                        <span class="nav-text">Profile</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Mobile Menu Button -->
+            <button class="mobile-menu-btn" id="mobile-menu-btn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <!-- User Actions -->
+            <div class="nav-right">
+                <div class="user-menu" id="user-menu-container">
+                    <img src="{{ user.get_profile_photo_url }}" alt="User Avatar" class="user-avatar" id="user-avatar-btn" />
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- User Dropdown (outside navbar to avoid overflow issues) -->
+    <div class="dropdown-menu" id="user-dropdown">
+        <a href="{% url 'profile' %}" class="dropdown-item">My Profile</a>
+        <a href="{% url 'logout' %}" class="dropdown-item">Logout</a>
+    </div>
+
+    <!-- Main Content Container -->
+    <main class="main-container">
+        <div class="center-content" style="max-width: 900px; margin: 80px auto; padding: 20px;">
+            <h2 style="font-size: 24px; font-weight: 600; margin-bottom: 20px;">Find Friends</h2>
+            
+            <div class="users-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
+                {% for item in users %}
+                <div class="user-card" style="background: white; border-radius: 8px; padding: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                    <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                        <img src="{{ item.user.get_profile_photo_url }}" alt="{{ item.user.username }}" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; margin-right: 12px;">
+                        <div>
+                            <h3 style="font-size: 16px; font-weight: 600; margin: 0;">
+                                <a href="{% url 'profile' item.user.username %}" style="color: #050505; text-decoration: none;">{{ item.user.username }}</a>
+                            </h3>
+                            {% if item.user.bio %}
+                            <p style="font-size: 13px; color: #65676b; margin: 4px 0 0 0;">{{ item.user.bio|truncatewords:10 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        {% if item.is_friend %}
+                        <button disabled style="width: 100%; padding: 8px 16px; background: #e4e6eb; color: #050505; border: none; border-radius: 6px; font-weight: 600; cursor: not-allowed;">
+                            ✓ Friends
+                        </button>
+                        {% elif item.has_pending_request %}
+                        <form method="post" action="{% url 'cancel_friend_request' item.user.username %}" style="margin: 0;">
+                            {% csrf_token %}
+                            <button type="submit" style="width: 100%; padding: 8px 16px; background: #e4e6eb; color: #050505; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                                Cancel Request
+                            </button>
+                        </form>
+                        {% else %}
+                        <form method="post" action="{% url 'send_friend_request' item.user.username %}" style="margin: 0;">
+                            {% csrf_token %}
+                            <button type="submit" style="width: 100%; padding: 8px 16px; background: #1877f2; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                                Add Friend
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <p style="grid-column: 1 / -1; text-align: center; color: #65676b; padding: 40px;">No users found</p>
+                {% endfor %}
+            </div>
+        </div>
+    </main>
+    
+    <script src="{% static 'js/main.js' %}?v=9"></script>
+</body>
+</body>
+<!-- jQuery CDN for global use -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-3gJwYp4gk6kKnto2h8u1zvQK6Q9r6M1y5+Zj3t6YEdw=" crossorigin="anonymous"></script>
+</html>

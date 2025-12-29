@@ -1,0 +1,30 @@
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('post/<int:post_id>/share/', views.share_post, name='share_post'),
+    path('', views.home_view, name='home'),
+    path('signup/', views.signup_view, name='signup'),
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+    path('profile/', views.profile_view, name='profile'),
+    path('profile/<str:username>/', views.profile_view, name='profile'),
+    path('messages/', views.messages_view, name='messages'),
+    path('conversation/<int:conversation_id>/', views.conversation_view, name='conversation'),
+    path('conversation/<int:conversation_id>/messages/', views.get_messages_json, name='get_messages_json'),
+    path('message/<int:message_id>/delete/', views.delete_message, name='delete_message'),
+    path('user/<int:user_id>/status/', views.get_user_status, name='get_user_status'),
+    path('post/<int:post_id>/like/', views.like_post, name='like_post'),
+    path('post/<int:post_id>/comment/', views.add_comment, name='add_comment'),
+    path('post/<int:post_id>/comments/', views.get_comments, name='get_comments'),
+    path('post/<int:post_id>/delete/', views.delete_post, name='delete_post'),
+    path('friend-request/send/<str:username>/', views.send_friend_request, name='send_friend_request'),
+    path('friend-request/cancel/<str:username>/', views.cancel_friend_request, name='cancel_friend_request'),
+    path('friend-request/accept/<int:request_id>/', views.accept_friend_request, name='accept_friend_request'),
+    path('friend-request/reject/<int:request_id>/', views.reject_friend_request, name='reject_friend_request'),
+    path('unfriend/<str:username>/', views.unfriend, name='unfriend'),
+    path('conversation/start/<str:username>/', views.start_conversation, name='start_conversation'),
+    path('find-friends/', views.find_friends_view, name='find_friends'),
+    path('friends/', views.all_friends_view, name='all_friends'),
+    path('friends/<str:username>/', views.all_friends_view, name='all_friends'),
+]
